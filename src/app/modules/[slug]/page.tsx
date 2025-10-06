@@ -102,7 +102,9 @@ export default function ModulePage({ params }: { params: Promise<{ slug: string 
     );
   }
 
-  const externalLinks = module.externalLinks ? JSON.parse(module.externalLinks) : [];
+  const externalLinks: { title: string; url: string }[] = module.externalLinks
+    ? JSON.parse(module.externalLinks)
+    : [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -154,7 +156,7 @@ export default function ModulePage({ params }: { params: Promise<{ slug: string 
               </a>
             )}
             
-            {externalLinks.map((link: any, index: number) => (
+            {externalLinks.map((link: { title: string; url: string }, index: number) => (
               <a
                 key={index}
                 href={link.url}
@@ -181,7 +183,7 @@ export default function ModulePage({ params }: { params: Promise<{ slug: string 
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Atividades Práticas</h2>
             <div className="space-y-4">
-              {module.activities.map((activity) => (
+              {module.activities.map((activity: Activity) => (
                 <div key={activity.id} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center mb-2">
                     <div className="text-emerald-500 mr-3">
@@ -200,7 +202,7 @@ export default function ModulePage({ params }: { params: Promise<{ slug: string 
                           const quizData = JSON.parse(activity.content);
                           return (
                             <div className="space-y-3">
-                              {quizData.questions?.map((question: any, index: number) => (
+                              {quizData.questions?.map((question: { question: string; options?: string[]; correct?: number }, index: number) => (
                                 <div key={index} className="bg-gray-50 p-3 rounded">
                                   <p className="font-medium mb-2">{question.question}</p>
                                   <ul className="space-y-1">
@@ -229,7 +231,7 @@ export default function ModulePage({ params }: { params: Promise<{ slug: string 
                     <div className="mt-3">
                       {(() => {
                         try {
-                          const simData = JSON.parse(activity.content);
+                          const simData = JSON.parse(activity.content) as { instructions?: string; deliverables?: string[] };
                           return (
                             <div>
                               <p className="text-gray-700 mb-2">{simData.instructions}</p>

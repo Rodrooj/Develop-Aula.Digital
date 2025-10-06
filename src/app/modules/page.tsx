@@ -76,8 +76,8 @@ export default function ModulesPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {modules.map((module) => {
-            const externalLinks = module.externalLinks ? JSON.parse(module.externalLinks) : [];
+            {modules.map((module) => {
+            const externalLinks: { title: string; url: string }[] = module.externalLinks ? JSON.parse(module.externalLinks) : [];
             
             return (
               <div key={module.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
@@ -114,7 +114,7 @@ export default function ModulesPage() {
                     <div className="mt-4 pt-4 border-t border-gray-200">
                       <h4 className="text-sm font-medium text-gray-700 mb-2">Links Úteis:</h4>
                       <div className="space-y-1">
-                        {externalLinks.map((link: any, index: number) => (
+                        {externalLinks.map((link: { title: string; url: string }, index: number) => (
                           <a
                             key={index}
                             href={link.url}

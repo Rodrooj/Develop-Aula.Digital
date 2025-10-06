@@ -7,19 +7,19 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    const module = await getModuleBySlug(slug);
+    const moduleData = await getModuleBySlug(slug);
     
-    if (!module) {
+    if (!moduleData) {
       return NextResponse.json(
         { error: 'Module not found' },
         { status: 404 }
       );
     }
 
-    const activities = await getActivitiesByModuleId(module.id);
+    const activities = await getActivitiesByModuleId(moduleData.id);
     
     return NextResponse.json({
-      ...module,
+      ...moduleData,
       activities
     });
   } catch (error) {

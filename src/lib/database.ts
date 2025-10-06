@@ -1,5 +1,5 @@
 import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
+import { open, type Database } from 'sqlite';
 import path from 'path';
 
 export interface Module {
@@ -23,19 +23,21 @@ export interface Activity {
   createdAt: string;
 }
 
-let db: any = null;
+let db: Database | null = null;
 
-export async function getDatabase() {
+export async function getDatabase(): Promise<Database> {
   if (!db) {
     const dbPath = path.join(process.cwd(), 'database.sqlite');
-    
+
     db = await open({
       filename: dbPath,
       driver: sqlite3.Database,
     });
 
+    const database = db;
+
     // Criar tabelas se não existirem
-    await db.exec(`
+    await database.exec(`
       CREATE TABLE IF NOT EXISTS modules (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
@@ -60,16 +62,16 @@ export async function getDatabase() {
     `);
 
     // Inserir dados iniciais se a tabela estiver vazia
-    const moduleCount = await db.get('SELECT COUNT(*) as count FROM modules');
-    if (moduleCount.count === 0) {
-      await seedDatabase(db);
+    const moduleCount = await database.get<{ count: number }>('SELECT COUNT(*) as count FROM modules');
+    if ((moduleCount?.count ?? 0) === 0) {
+      await seedDatabase(database);
     }
   }
 
-  return db;
+  return db as Database;
 }
 
-async function seedDatabase(database: any) {
+async function seedDatabase(database: Database) {
   const modules = [
     {
       title: 'Slides atrativos',
@@ -375,11 +377,11 @@ async function seedDatabase(database: any) {
     }
   ];
 
-  for (const module of modules) {
+  for (const m of modules) {
     await database.run(
       `INSERT INTO modules (title, description, content, slug, videoUrl, externalLinks) 
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [module.title, module.description, module.content, module.slug, module.videoUrl, module.externalLinks]
+      [m.title, m.description, m.content, m.slug, m.videoUrl, m.externalLinks]
     );
   }
 
@@ -415,25 +417,26 @@ async function seedDatabase(database: any) {
     }
   ];
 
-  for (const activity of activities) {
+  for (const a of activities) {
     await database.run(
       `INSERT INTO activities (moduleId, title, type, content) VALUES (?, ?, ?, ?)`,
-      [activity.moduleId, activity.title, activity.type, activity.content]
+      [a.moduleId, a.title, a.type, a.content]
     );
   }
 }
 
 export async function getAllModules(): Promise<Module[]> {
-  const db = await getDatabase();
-  return await db.all('SELECT * FROM modules ORDER BY createdAt ASC');
+  const database = await getDatabase();
+  return await database.all<Module[]>('SELECT * FROM modules ORDER BY createdAt ASC');
 }
 
 export async function getModuleBySlug(slug: string): Promise<Module | null> {
-  const db = await getDatabase();
-  return await db.get('SELECT * FROM modules WHERE slug = ?', [slug]);
+  const database = await getDatabase();
+  const row = await database.get<Module | undefined>('SELECT * FROM modules WHERE slug = ?', [slug]);
+  return row ?? null;
 }
 
 export async function getActivitiesByModuleId(moduleId: number): Promise<Activity[]> {
-  const db = await getDatabase();
-  return await db.all('SELECT * FROM activities WHERE moduleId = ? ORDER BY createdAt ASC', [moduleId]);
+  const database = await getDatabase();
+  return await database.all<Activity[]>('SELECT * FROM activities WHERE moduleId = ? ORDER BY createdAt ASC', [moduleId]);
 }
